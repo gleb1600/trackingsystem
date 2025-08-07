@@ -53,6 +53,22 @@ func ProductID(ctx context.Context, s *storage.Storage) func(c *gin.Context) {
 	}
 }
 
+func ProductIDUpdate(ctx context.Context, s *storage.Storage) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		var reqBody storage.ReqProduct
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.String(422, fmt.Sprintf("faild to update product, ShouldBindJSON error:%v", err))
+			return
+		}
+		prod, err := s.UpdateProductID(ctx, reqBody)
+		if err != nil {
+			c.String(404, fmt.Sprintf("faild to update product, db error:%v", err))
+			return
+		}
+		c.JSON(200, prod)
+	}
+}
+
 func NewOrder(ctx context.Context, s *storage.Storage) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		var reqBody []storage.ReqProduct

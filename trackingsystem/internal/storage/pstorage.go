@@ -35,14 +35,15 @@ type Product struct {
 	ID          string
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description"`
-	Quantity    int    `json:"quantity" binding:"required"`
+	Quantity    int    `json:"quantity" binding:"required,min=1"`
 	Created_at  time.Time
 	Updated_at  time.Time
 }
 
 type ReqProduct struct {
-	ID       string
-	Quantity int `json:"quantity"`
+	ID          string `json:"id" binding:"required"`
+	Description string `json:"description"`
+	Quantity    int    `json:"quantity" binding:"required,min=1"`
 }
 
 func (s *Storage) CreateProduct(ctx context.Context, p Product) error {
@@ -93,6 +94,37 @@ func (s *Storage) GetProductID(ctx context.Context, id string) (Product, error) 
 		return Product{}, err
 	}
 	return p, nil
+}
+
+func (s *Storage) UpdateProductID(ctx context.Context, p ReqProduct) (Product, error) {
+	_, err := s.GetProductID(ctx, p.ID)
+	if err != nil {
+		return Product{}, err
+	}
+	if p.Description != "" {
+		_, err = s.pool.Exec(ctx,
+			`UPDATE products SET
+			description = $1,
+			quantity = $2,
+			updated_at = $3
+			WHERE id = $4`,
+			p.Description, p.Quantity, time.Now(), p.ID)
+	} else {
+		_, err = s.pool.Exec(ctx,
+			`UPDATE products SET
+			quantity = $1,
+			updated_at = $2
+			WHERE id = $3`,
+			p.Quantity, time.Now(), p.ID)
+	}
+	if err != nil {
+		return Product{}, err
+	}
+	pr, err := s.GetProductID(ctx, p.ID)
+	if err != nil {
+		return Product{}, err
+	}
+	return pr, nil
 }
 
 type Order struct {

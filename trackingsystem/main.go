@@ -29,6 +29,7 @@ func main() {
 
 	r.POST("/newproduct", handlers.NewProduct(ctx, s))
 	r.POST("/neworder", handlers.NewOrder(ctx, s))
+	r.POST("/updateproduct", handlers.ProductIDUpdate(ctx, s))
 
 	port := ":8080"
 	if err := r.Run(port); err != nil {
